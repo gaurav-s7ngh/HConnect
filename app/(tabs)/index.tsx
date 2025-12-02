@@ -1,168 +1,235 @@
-// app/(tabs)/index.tsx
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, ImageBackground } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, STYLES } from '../../constants/theme';
-import { DUMMY_PROFILES } from '../../constants/data';
+import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useRef } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Image,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { COLORS } from '../../constants/theme';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+// --- DUMMY DATA ---
+const PROFILES = [
+  {
+    id: '1',
+    name: 'Riya',
+    age: 20,
+    college: 'GGSIPU (Main Campus)',
+    course: 'B.Tech CSE',
+    image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=2459&auto=format&fit=crop',
+    promptQuestion: 'My golden rule',
+    promptAnswer: 'If you don\'t like Laphing at Majnu Ka Tila, we can\'t be friends.',
+    isVerified: true,
+  },
+  {
+    id: '2',
+    name: 'Kabir',
+    age: 21,
+    college: 'Delhi University (North)',
+    course: 'Economics Hons.',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2487&auto=format&fit=crop',
+    promptQuestion: 'Dating me is like',
+    promptAnswer: 'Debugging code. Frustrating at first, but worth it when it works.',
+    isVerified: true,
+  },
+  {
+    id: '3',
+    name: 'Ananya',
+    age: 19,
+    college: 'Amity Noida',
+    course: 'Psychology',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=2864&auto=format&fit=crop',
+    promptQuestion: 'Unpopular opinion',
+    promptAnswer: 'South campus vibe > North campus vibe.',
+    isVerified: true,
+  }
+];
 
 export default function HomeScreen() {
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  const handleAction = (action: 'like' | 'pass') => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    console.log(`User ${action}ed profile`);
+  };
+
   return (
     <View style={styles.container}>
-      {/* 1. Floating Header (Glassmorphism) */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>campus vibes ✨</Text>
-          <Text style={styles.headerSubtitle}>IPU Delhi • North Campus</Text>
+      <StatusBar barStyle="light-content" />
+      
+      {/* Top Bar (Floating) */}
+      <View style={styles.topBar}>
+        <View style={styles.locationTag}>
+          <Ionicons name="location-sharp" size={14} color={COLORS.primary} />
+          <Text style={styles.locationText}>Delhi NCR • Student Feed</Text>
         </View>
         <TouchableOpacity style={styles.filterBtn}>
-          <Ionicons name="options" size={20} color={COLORS.primary} />
+          <Ionicons name="options-outline" size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {DUMMY_PROFILES.map((profile, index) => (
-          <View key={profile.id} style={styles.cardWrapper}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        snapToInterval={height * 0.75} // Snap effect for magazine feel
+        decelerationRate="fast"
+      >
+        {PROFILES.map((profile, index) => (
+          <View key={profile.id} style={styles.cardContainer}>
             
-            {/* --- IMAGE SECTION --- */}
-            <View style={[styles.card, STYLES.shadow]}>
-              <ImageBackground source={{ uri: profile.image }} style={styles.image} imageStyle={{ borderRadius: 30 }}>
-                
-                {/* Gradient Overlay for Text Readability */}
-                <LinearGradient
-                  colors={['transparent', 'rgba(30,45,76,0.9)']}
-                  style={styles.gradientOverlay}
-                >
-                  {/* Status Badge */}
-                  {profile.verified && (
-                    <View style={styles.verifiedTag}>
-                      <Ionicons name="checkmark-circle" size={14} color="white" />
-                      <Text style={styles.verifiedText}>VERIFIED STUDENT</Text>
-                    </View>
-                  )}
-
-                  {/* Name & Details */}
-                  <View style={styles.infoBox}>
-                    <Text style={styles.name}>{profile.name}, {profile.age}</Text>
-                    <Text style={styles.college}>{profile.college}</Text>
-                    <Text style={styles.major}>{profile.major}</Text>
+            {/* --- MAIN IMAGE CARD --- */}
+            <View style={styles.card}>
+              <Image source={{ uri: profile.image }} style={styles.image} />
+              
+              {/* Gradient for Readability */}
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)']}
+                style={styles.gradient}
+              >
+                {/* Verified Badge */}
+                {profile.isVerified && (
+                  <View style={styles.verifiedBadge}>
+                    <Ionicons name="checkmark-circle" size={14} color="#FFF" />
+                    <Text style={styles.verifiedText}>VERIFIED STUDENT</Text>
                   </View>
-                </LinearGradient>
-              </ImageBackground>
+                )}
 
-              {/* Like/Pass Buttons (Floating on the Image Edge) */}
-              <View style={styles.floatingActions}>
-                <TouchableOpacity style={styles.circleBtn}>
-                  <Ionicons name="close" size={28} color={COLORS.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.circleBtn, styles.likeBtn]}>
-                  <Ionicons name="heart" size={28} color="white" />
-                </TouchableOpacity>
-              </View>
+                <Text style={styles.name}>{profile.name}, {profile.age}</Text>
+                <Text style={styles.details}>{profile.course} • {profile.college}</Text>
+              </LinearGradient>
             </View>
 
-            {/* --- "VIBE CHECK" STICKER SECTION --- */}
-            <View style={styles.stickerContainer}>
-              <View style={styles.connectorLine} />
-              <View style={[STYLES.glassCard, styles.sticker]}>
-                <Text style={styles.stickerLabel}>VIBE CHECK ⚡</Text>
-                <Text style={styles.stickerQuestion}>{profile.promptLabel}</Text>
-                <Text style={styles.stickerAnswer}>"{profile.promptAnswer}"</Text>
-              </View>
+            {/* --- VIBE CHECK PROMPT --- */}
+            <View style={styles.promptBox}>
+              <Text style={styles.promptLabel}>VIBE CHECK ✨</Text>
+              <Text style={styles.promptQuestion}>{profile.promptQuestion}</Text>
+              <Text style={styles.promptAnswer}>"{profile.promptAnswer}"</Text>
+            </View>
+
+            {/* --- ACTION BUTTONS (Floating) --- */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity 
+                style={[styles.actionBtn, styles.passBtn]} 
+                onPress={() => handleAction('pass')}
+              >
+                <Ionicons name="close" size={30} color={COLORS.primary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.actionBtn, styles.likeBtn]} 
+                onPress={() => handleAction('like')}
+              >
+                <Ionicons name="heart" size={32} color="white" />
+              </TouchableOpacity>
             </View>
 
           </View>
         ))}
-        
-        <View style={{height: 100}} /> 
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: COLORS.background, // Light Blue Aesthetic
-  },
+  container: { flex: 1, backgroundColor: '#F2F0E9' }, 
   
-  // Header
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  // Top Bar
+  topBar: {
+    position: 'absolute', top: Platform.OS === 'ios' ? 10 : 10, left: 0, right: 0,
+    zIndex: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 20
   },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: COLORS.primary, letterSpacing: -1 },
-  headerSubtitle: { fontSize: 13, fontWeight: '600', color: COLORS.primary, opacity: 0.6, marginTop: 4, textTransform: 'uppercase' },
-  filterBtn: { padding: 10, backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: 12 },
-
-  scrollContent: { paddingHorizontal: 15, paddingBottom: 50 },
-
-  // Card
-  cardWrapper: { marginBottom: 35 },
-  card: {
-    height: 480,
-    borderRadius: 30,
-    backgroundColor: COLORS.primary, // Fallback
-    position: 'relative',
-  },
-  image: { width: '100%', height: '100%', justifyContent: 'flex-end' },
-  
-  // Gradient & Text
-  gradientOverlay: {
-    height: '50%',
-    justifyContent: 'flex-end',
-    padding: 24,
-    paddingBottom: 30,
-    borderRadius: 30,
-  },
-  verifiedTag: {
-    position: 'absolute', top: -200, left: 20, // Positioned at top of card
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: 20,
+  locationTag: {
     flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)'
+    backgroundColor: 'rgba(255,255,255,0.8)', paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 20
   },
-  verifiedText: { color: 'white', fontSize: 10, fontWeight: '800', marginLeft: 4, letterSpacing: 1 },
-  
-  infoBox: { marginBottom: 10 },
-  name: { fontSize: 32, fontWeight: '900', color: 'white', letterSpacing: -0.5 },
-  college: { fontSize: 16, fontWeight: '600', color: '#acbdda', marginTop: 4 },
-  major: { fontSize: 14, fontWeight: '500', color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+  locationText: { 
+    fontSize: 12, fontWeight: '700', color: COLORS.primary, marginLeft: 4, 
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace' 
+  },
+  filterBtn: {
+    width: 40, height: 40, borderRadius: 20, 
+    backgroundColor: 'rgba(255,255,255,0.8)', justifyContent: 'center', alignItems: 'center'
+  },
 
-  // Floating Buttons
-  floatingActions: {
-    position: 'absolute',
-    bottom: 25,
-    right: 20,
-    flexDirection: 'row',
-    gap: 15,
-  },
-  circleBtn: {
-    width: 55, height: 55,
+  // Card Structure
+  cardContainer: {
+    height: height * 0.75, // Takes up 75% of screen
+    marginBottom: 30,
+    marginHorizontal: 10,
+    marginTop: 10,
     borderRadius: 30,
     backgroundColor: COLORS.white,
-    justifyContent: 'center', alignItems: 'center',
-    shadowColor: "#000", shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.2, shadowRadius: 5, elevation: 5
+    shadowColor: "#000", shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1, shadowRadius: 20, elevation: 5,
+    overflow: 'hidden'
   },
-  likeBtn: { backgroundColor: '#FF4785' }, // Pop color
+  card: { flex: 1, position: 'relative' },
+  image: { width: '100%', height: '100%', resizeMode: 'cover' },
+  gradient: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    height: '40%', justifyContent: 'flex-end', padding: 20, paddingBottom: 30
+  },
+  
+  // Profile Text
+  name: { 
+    fontFamily: Platform.OS === 'ios' ? 'Didot' : 'serif', 
+    fontSize: 36, color: 'white', letterSpacing: -0.5 
+  },
+  details: { 
+    color: 'rgba(255,255,255,0.9)', fontSize: 15, marginTop: 4, fontWeight: '500' 
+  },
+  
+  // Badges
+  verifiedBadge: {
+    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
+    backgroundColor: '#2D8CFF', paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 4, marginBottom: 10
+  },
+  verifiedText: { 
+    color: 'white', fontSize: 10, fontWeight: '800', marginLeft: 4, letterSpacing: 0.5 
+  },
 
-  // Sticker Logic
-  stickerContainer: { alignItems: 'center', marginTop: -20, paddingHorizontal: 10 },
-  connectorLine: { width: 2, height: 20, backgroundColor: COLORS.primary, opacity: 0.3 },
-  sticker: {
-    width: '100%',
-    backgroundColor: COLORS.secondary, // Beige
-    transform: [{ rotate: '-1deg' }], // Slight tilt for "sticker" vibe
-    paddingVertical: 20,
+  // Prompt Box
+  promptBox: {
+    backgroundColor: COLORS.secondary, 
+    padding: 20,
+    justifyContent: 'center'
   },
-  stickerLabel: { fontSize: 10, fontWeight: '900', color: COLORS.primary, opacity: 0.5, letterSpacing: 1, marginBottom: 5 },
-  stickerQuestion: { fontSize: 16, fontWeight: '600', color: COLORS.primary, marginBottom: 8 },
-  stickerAnswer: { fontSize: 20, fontWeight: 'bold', color: COLORS.primary, lineHeight: 26 },
+  promptLabel: { 
+    fontSize: 10, fontWeight: '900', color: 'rgba(0,0,0,0.4)', 
+    marginBottom: 6, letterSpacing: 1 
+  },
+  promptQuestion: { 
+    fontSize: 14, color: COLORS.primary, fontWeight: '600', marginBottom: 4 
+  },
+  promptAnswer: { 
+    fontFamily: Platform.OS === 'ios' ? 'Didot' : 'serif',
+    fontSize: 22, color: COLORS.primary, lineHeight: 28 
+  },
+
+  // Floating Actions
+  actionRow: {
+    position: 'absolute', bottom: 140, right: 20,
+    flexDirection: 'column', gap: 15
+  },
+  actionBtn: {
+    width: 60, height: 60, borderRadius: 30,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: "#000", shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3, shadowRadius: 10, elevation: 8
+  },
+  passBtn: { backgroundColor: COLORS.white },
+  likeBtn: { backgroundColor: '#FF4785' }
 });
