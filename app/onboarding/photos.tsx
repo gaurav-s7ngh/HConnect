@@ -1,122 +1,99 @@
-// app/onboarding/photos.tsx
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Image,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { COLORS } from '../../constants/theme';
 
 export default function PhotoUploadScreen() {
   const router = useRouter();
-  const photoSlots = [1, 2, 3, 4]; // Creates 4 upload slots
   
+  // Explicitly allowing nulls
+  const [photos, setPhotos] = useState<(string | null)[]>([null, null, null, null]);
+  const [captions, setCaptions] = useState<string[]>(['', '', '', '']);
+
+  const pickImage = async (index: number) => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      const newPhotos = [...photos];
+      newPhotos[index] = result.assets[0].uri;
+      setPhotos(newPhotos);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  };
+
+  const isComplete = photos.filter(p => p !== null).length >= 2;
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        
-        <Text style={styles.header}>Add 4 Photos</Text>
-        <Text style={styles.subHeader}>Add a caption to give your profile more personality.</Text>
-        
-        {photoSlots.map((item) => (
-          <View key={item} style={styles.photoCard}>
-            {/* The Photo Placeholder Box */}
-            <TouchableOpacity style={styles.photoBox}>
-              <Ionicons name="add" size={40} color={COLORS.primary} />
-              <Text style={styles.uploadText}>Upload Photo {item}</Text>
-            </TouchableOpacity>
-            
-            {/* The Caption Input */}
-            <TextInput 
-              placeholder="Write a caption... (e.g. 'Me at the fest')" 
-              placeholderTextColor={COLORS.gray}
-              style={styles.captionInput} 
-            />
-          </View>
-        ))}
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>The Visuals</Text>
+        <Text style={styles.subHeader}>Add at least 2 photos.</Text>
 
-        <TouchableOpacity style={styles.button} onPress={() => router.replace('/(tabs)')}>
-          <Text style={styles.buttonText}>Complete Profile</Text>
+        <View style={styles.grid}>
+          {photos.map((uri, index) => (
+            <View key={index} style={styles.card}>
+              <TouchableOpacity style={styles.photoBox} onPress={() => pickImage(index)}>
+                {uri ? (
+                  <Image source={{ uri }} style={styles.img} />
+                ) : (
+                  <Ionicons name="add" size={30} color={COLORS.primary} style={{opacity: 0.5}} />
+                )}
+              </TouchableOpacity>
+              <TextInput 
+                style={styles.caption} 
+                placeholder="Caption..." 
+                placeholderTextColor={COLORS.gray}
+                value={captions[index]}
+                onChangeText={(text) => {
+                  const newCaps = [...captions];
+                  newCaps[index] = text;
+                  setCaptions(newCaps);
+                }}
+              />
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity 
+          style={[styles.btn, !isComplete && { opacity: 0.5 }]} 
+          disabled={!isComplete}
+          onPress={() => router.push('/(tabs)')}
+        >
+          <Text style={styles.btnText}>Finish Profile</Text>
         </TouchableOpacity>
-        
-        {/* Bottom Spacer */}
-        <View style={{height: 50}} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { 
-    flex: 1, 
-    backgroundColor: COLORS.background, 
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 
-  },
-  scrollContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  header: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    color: COLORS.primary, 
-    marginTop: 10 
-  },
-  subHeader: { 
-    fontSize: 15, 
-    color: '#555', 
-    marginBottom: 25, 
-    marginTop: 8,
-    lineHeight: 22
-  },
-  
-  // Card Styles
-  photoCard: { 
-    backgroundColor: COLORS.white, 
-    padding: 12, 
-    borderRadius: 16, 
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  photoBox: { 
-    height: 220, 
-    backgroundColor: COLORS.secondary, 
-    borderRadius: 12, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-  uploadText: {
-    color: COLORS.primary,
-    marginTop: 8,
-    fontWeight: '600'
-  },
-  captionInput: { 
-    padding: 12, 
-    marginTop: 8, 
-    fontSize: 15,
-    color: COLORS.primary,
-    borderBottomWidth: 1, 
-    borderBottomColor: '#EEE' 
-  },
-
-  // Button Styles
-  button: {
-    backgroundColor: COLORS.primary,
-    padding: 18,
-    borderRadius: 30,
-    alignItems: 'center',
-    marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-  },
-  buttonText: {
-    color: COLORS.white,
-    fontSize: 18,
-    fontWeight: 'bold',
-  }
+  safeArea: { flex: 1, backgroundColor: COLORS.background },
+  container: { padding: 24, paddingBottom: 50 },
+  header: { fontSize: 32, fontFamily: Platform.OS === 'ios' ? 'Didot' : 'serif', color: COLORS.primary, marginTop: 20 },
+  subHeader: { fontSize: 16, color: COLORS.gray, marginBottom: 30 },
+  grid: { gap: 20 },
+  card: { marginBottom: 10 },
+  photoBox: { width: '100%', height: 350, backgroundColor: '#EBE6DE', borderRadius: 20, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+  img: { width: '100%', height: '100%', resizeMode: 'cover' },
+  caption: { marginTop: 10, fontSize: 14, color: COLORS.primary, borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 5 },
+  btn: { backgroundColor: COLORS.primary, padding: 20, borderRadius: 16, alignItems: 'center', marginTop: 20 },
+  btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 }
 });

@@ -1,68 +1,50 @@
-// constants/theme.js
-export const COLORS = {
-  background: '#F9F7F2', // Alabaster (Warm Cream)
-  primary: '#3E2723',    // Dark Espresso (Text & Buttons)
-  secondary: '#D7CCC8',  // Soft Taupe (Accents)
-  surface: '#FFFFFF',    // Pure White for cards
-  white: '#FFFFFF',      // <--- ADDED THIS BACK TO FIX THE ERROR
-  gray: '#9E9E9E',       // Soft Grey
-  border: '#E0E0E0',     // Light borders
+
+// 1. The Luxury Palette (Ingredients)
+const PALETTE = {
+  cream: '#F9F7F2',        // Warm Alabaster
+  deepEspresso: '#3E2723', // Dark Brown text
+  softTaupe: '#D7CCC8',    // Accents
+  nightBlack: '#14110F',   // Warm Charcoal
+  ivory: '#F0EAE2',        // Readable text for Dark Mode
+  charcoal: '#2C2420',     // Dark container
+  gray: '#9E9E9E',
+  white: '#FFFFFF',
   error: '#D32F2F',
-  glass: 'rgba(255, 255, 255, 0.85)',
-  overlay: 'rgba(0,0,0,0.3)',
 };
 
-export const STYLES = {
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    paddingHorizontal: 24,
+// 2. The Export that Fixes "Property does not exist" errors
+// We map the "Luxury" colors to the standard names your components use.
+export const COLORS = {
+  background: PALETTE.cream,
+  primary: PALETTE.deepEspresso,
+  secondary: PALETTE.softTaupe,
+  white: PALETTE.white,
+  gray: PALETTE.gray,
+  error: PALETTE.error,
+  border: '#E0E0E0',
+  // Dark mode specific fallback
+  darkBackground: PALETTE.nightBlack,
+  darkText: PALETTE.ivory,
+};
+
+// 3. Dynamic Themes for the Hook
+export const THEMES = {
+  light: {
+    background: PALETTE.cream,
+    text: PALETTE.deepEspresso,
+    textSub: 'rgba(62, 39, 35, 0.6)',
+    card: PALETTE.white,
+    border: '#E0E0E0',
+    icon: PALETTE.deepEspresso,
+    primary: PALETTE.deepEspresso,
   },
-  input: {
-    backgroundColor: COLORS.white,
-    padding: 18,
-    borderRadius: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    color: COLORS.primary,
-    borderWidth: 1,
-    borderColor: '#F0EBE5',
-    shadowColor: "#3E2723",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 10,
-    elevation: 2,
+  dark: {
+    background: PALETTE.nightBlack,
+    text: PALETTE.ivory,
+    textSub: 'rgba(240, 234, 226, 0.6)',
+    card: PALETTE.charcoal,
+    border: '#443D39',
+    icon: PALETTE.ivory,
+    primary: PALETTE.ivory,
   },
-  button: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 20,
-    borderRadius: 30,
-    alignItems: 'center',
-    marginTop: 20,
-    shadowColor: "#3E2723",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-  },
-  shadow: {
-    shadowColor: "#3E2723",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 5,
-  },
-  glassCard: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: 24,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,1)',
-  }
 };
